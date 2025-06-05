@@ -1,7 +1,8 @@
-import Fastify, { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import Fastify, { fastify, FastifyInstance, FastifyReply, FastifyRequest, RequestQuerystringDefault } from 'fastify';
 import cors from '@fastify/cors';
 import moment from 'moment'
 
+moment.locale("de")
 
 
 interface Task {
@@ -152,6 +153,49 @@ app.delete('/api/entry/:id/delete', (request: FastifyRequest, reply: FastifyRepl
 app.get('/api/entry/list', (request: FastifyRequest, reply: FastifyReply) => {
     reply.send(tasks);
 });
+
+interface EntryListQuery {
+    start: number | undefined;
+    end: number;
+}
+
+// bald ablaufende tasks zurückgeben
+app.get('/api/entry/list/next', {
+    schema: {
+        querystring: {
+            type: 'object',
+            required: ['end'],
+            properties: {
+                start: { type: 'integer' },
+                end: { type: 'integer' }
+            }
+        }
+    }}, async (request: FastifyRequest, reply: FastifyReply) => {
+        const query = request.query as EntryListQuery;
+        const start = query.start ?? 0;
+        const end = query.end;
+
+        if (end !== undefined && start > end) {
+            return reply.status(400).send({error: 'start not <= end'});
+        }
+        if (start < 0) {
+            return reply.status(400).send({error: 'start < 0 not allowed'});
+        }
+
+        const startDate = moment().add(start, 'days').startOf('day');
+        const endDate = moment().add(end, 'days').endOf('day');
+
+        const tasksResult = tasks.filter(task => {
+            if (task.done) {
+                return false;
+            }
+            const taskMoment = moment(task.dueDate * 1000);
+            return taskMoment.isSameOrAfter(startDate) && taskMoment.isSameOrBefore(endDate);
+        });
+
+        reply.send(tasksResult);
+    }
+);
 
 // task anhand der id zurückgeben
 app.get('/api/entry/:id', (request: FastifyRequest, reply: FastifyReply) => {
