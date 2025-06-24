@@ -43,13 +43,24 @@ export async function loginHandler(req: FastifyRequest, reply: FastifyReply) {
 
   // Token als HttpOnly-Cookie setzen
   reply.setCookie("authToken", token, {
-    path: "/",                // Cookie für alle Pfade gültig
-    httpOnly: true,           // Schutz vor XSS
-    secure: process.env.NODE_ENV === "production", // HTTPS in Produktion
-    sameSite: "lax",          // Schutz vor CSRF
-    maxAge: 86400,            // Gültigkeit: 24 Stunden (in Sekunden)
-    signed: true,             // Optional: Cookie signieren (benötigt fastify-cookie)
+    path: "/",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 86400,            // 24 Stunden (in Sekunden)
+    signed: false,
   });
 
   reply.send({ message: "Login successful" });
+}
+
+export async function logoutHandler(req: FastifyRequest, reply: FastifyReply) {
+  reply.clearCookie('authToken', {
+    path: '/',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  });
+
+  reply.send({ message: 'Logout successful' });
 }
