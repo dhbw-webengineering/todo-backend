@@ -1,5 +1,7 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import fastifyCookie from "@fastify/cookie";
+
 import { authRoutes } from "./routes/authRoutes";
 import { passwordResetRoutes } from "./routes/passwordResetRoutes";
 import { todoRoutes } from "./routes/todosRoutes";
@@ -15,6 +17,10 @@ app.register(cors, {
 });
 
 app.register(rateLimit);
+
+app.register(fastifyCookie, {
+  secret: process.env.COOKIE_SECRET, // Für signed cookies
+});
 app.register(jwtPlugin);
 app.register(authRoutes);
 app.register(passwordResetRoutes);

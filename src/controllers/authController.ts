@@ -1,4 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
+
 import argon2 from "argon2";
 import prisma from "../prisma/client";
 import emailService from "../services/emailService";
@@ -39,5 +40,16 @@ export async function loginHandler(req: FastifyRequest, reply: FastifyReply) {
   }
 
   const token = await reply.jwtSign({ id: user.id, email: user.email });
-  reply.send({ token });
+
+  // Token als HttpOnly-Cookie setzen
+  reply.setCookie("authToken", token, {
+    path: "/",                // Cookie für alle Pfade gültig
+    httpOnly: true,           // Schutz vor XSS
+    secure: process.env.NODE_ENV === "production", // HTTPS in Produktion
+    sameSite: "lax",          // Schutz vor CSRF
+    maxAge: 86400,            // Gültigkeit: 24 Stunden (in Sekunden)
+    signed: true,             // Optional: Cookie signieren (benötigt fastify-cookie)
+  });
+
+  reply.send({ message: "Login successful" });
 }
