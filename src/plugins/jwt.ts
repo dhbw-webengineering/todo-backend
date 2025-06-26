@@ -3,7 +3,13 @@ import jwt from "@fastify/jwt";
 import { FastifyRequest, FastifyReply } from "fastify";
 
 export default fp(async function (fastify) {
-    fastify.register(jwt, { secret: "your-super-secret-key" });
+    fastify.register(jwt, {
+        secret: "your-super-secret-key",
+        cookie: {
+            cookieName: "authToken", // <-- Name deines Cookies
+            signed: false
+        }
+    });
 
     fastify.decorate("authenticate", async function (
         request: FastifyRequest,

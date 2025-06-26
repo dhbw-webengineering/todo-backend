@@ -74,18 +74,29 @@ class EmailService {
       to: options.to,
       subject: options.subject,
       html,
-      text: options.body.replace(/<[^>]*>?/gm, ""), // einfacher Text-Fallback
+      text: options.body.replace(/<[^>]*>?/gm, ""),
     };
 
     try {
       const info = await this.transporter.sendMail(mailOptions);
       console.log("Email sent:", info.messageId);
       return info;
-    } catch (error) {
+    } catch (error: any) {
+      // Fehlerbehandlung: interner Empfänger @knoep.de unbekannt, Fehler ignorieren
+      if (
+        error.code === "EENVELOPE" &&
+        error.responseCode === 550 &&
+        typeof error.response === "string" &&
+        error.response.includes("Recipient address rejected: User unknown")
+      ) {
+        console.warn("Empfängeradresse unbekannt, Fehler wird ignoriert, Mail gilt als gesendet.");
+        return { messageId: "ignored-error-unknown-recipient" };
+      }
       console.error("Error sending email:", error);
       throw error;
     }
   }
+
 }
 
 export default new EmailService();

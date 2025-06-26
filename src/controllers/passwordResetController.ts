@@ -9,7 +9,7 @@ export async function requestPasswordResetHandler(req: FastifyRequest, reply: Fa
   const user = await prisma.user.findUnique({ where: { email } });
   if (user) {
     const token = await generateResetToken(user.id);
-    const link = `https://example.com?token=${token}`;
+    const link = `http://localhost:3000/auth/reset-password?token=${token}`;
     await sendPasswordResetEmail(email, link);
   }
   reply.send({ message: "Wenn die E-Mail existiert, wurde ein Reset-Link versendet." });

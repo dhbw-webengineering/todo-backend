@@ -50,7 +50,7 @@ export async function loginHandler(req: FastifyRequest, reply: FastifyReply) {
     signed: false,
   });
 
-  reply.send({ message: "Login successful" });
+  reply.send({ message: "Login successful", token: token, user: { id: user.id, email: user.email } });
 }
 
 export async function logoutHandler(req: FastifyRequest, reply: FastifyReply) {

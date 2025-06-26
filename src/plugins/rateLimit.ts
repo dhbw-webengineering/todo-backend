@@ -3,7 +3,7 @@ import rateLimit from "@fastify/rate-limit";
 
 export default fp(async (fastify) => {
   fastify.register(rateLimit, {
-    max: 10, 
+    max: 50, 
     timeWindow: '1 minute',
     keyGenerator: (req) => {
       const user = (req as any).user;
