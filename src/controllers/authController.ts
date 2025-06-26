@@ -8,7 +8,7 @@ export async function registerHandler(req: FastifyRequest, reply: FastifyReply) 
   const { email, password } = req.body as { email: string; password: string };
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 6) {
-    return reply.code(400).send({ error: "Invalid input." });
+    return reply.code(400).send({ error: "Invalid input.", message : "Bitte gib eine gültige E-Mail-Adresse und ein Passwort mit mindestens 6 Zeichen ein." });
   }
 
   try {
@@ -17,7 +17,7 @@ export async function registerHandler(req: FastifyRequest, reply: FastifyReply) 
     sendWelcomeMail({ to: user.email });
     reply.code(201).send({ id: user.id, email: user.email });
   } catch {
-    reply.code(400).send({ error: "User already exists or invalid data." });
+    reply.code(400).send({ error: "User already exists or invalid data.", message: "Diese Email ist bereits registriert" });
   }
 }
 
@@ -36,12 +36,11 @@ export async function loginHandler(req: FastifyRequest, reply: FastifyReply) {
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user || !(await argon2.verify(user.password, password))) {
-    return reply.code(401).send({ error: "Invalid credentials" });
+    return reply.code(401).send({ error: "Invalid credentials", message: "Login fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten."});
   }
 
   const token = await reply.jwtSign({ id: user.id, email: user.email });
 
-  // Token als HttpOnly-Cookie setzen
   reply.setCookie("authToken", token, {
     path: "/",
     httpOnly: true,
@@ -59,7 +58,9 @@ export async function logoutHandler(req: FastifyRequest, reply: FastifyReply) {
     path: '/',
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax'
+    sameSite: 'lax',
+    maxAge: 0, // Cookie sofort löschen
+  
   });
 
   reply.send({ message: 'Logout successful' });
