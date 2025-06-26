@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import prisma from "../prisma/client";
 
+
 // GET TODOS
 export async function getTodoHandler(req: FastifyRequest, reply: FastifyReply) {
   const user = req.user as { id: number };

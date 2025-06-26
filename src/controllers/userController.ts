@@ -1,7 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import prisma from "../prisma/client";
 import argon2 from "argon2";
-import emailService from "../services/emailService";
 
 interface UpdateUserBody {
   email?: string;
