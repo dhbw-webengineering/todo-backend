@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import prisma from "../prisma/client";
+import { Tag, TodoAPI } from "../types/task";
 
 
 // GET TODOS
@@ -20,9 +21,9 @@ export async function getTodoHandler(req: FastifyRequest, reply: FastifyReply) {
     });
 
     // Tags extrahieren
-    const formattedTodos = todos.map(todo => ({
+    const formattedTodos: TodoAPI[] = todos.map((todo: TodoAPI) => ({
       ...todo,
-      tags: todo.tags.map(t => t.tag)
+      tags: todo.tags ? todo.tags.map((t: Tag) => t.name) : [],
     }));
 
     reply.send(formattedTodos);
@@ -87,7 +88,7 @@ export async function createTodoHandler(req: FastifyRequest, reply: FastifyReply
 
     const formatted = {
       ...newTodo,
-      tags: newTodo.tags.map(t => t.tag)
+      tags: newTodo.tags.map((t:Tag) => t.name)
     };
 
     reply.status(201).send(formatted);
@@ -177,7 +178,7 @@ export async function updateTodoHandler(req: FastifyRequest, reply: FastifyReply
 
     const formatted = {
       ...finalTodo,
-      tags: finalTodo?.tags.map(t => t.tag)
+      tags: finalTodo?.tags.map((t:Tag) => t.name)
     };
 
     reply.send(formatted);
