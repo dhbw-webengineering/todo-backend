@@ -14,8 +14,8 @@ export async function todoRoutes(fastify: FastifyInstance) {
   fastify.post("/todos", { preHandler: [fastify.authenticate] }, createTodoHandler);
 
   // Ein Todo aktualisieren (z. B. per ID in Query)
-  fastify.patch("/todos", { preHandler: [fastify.authenticate] }, updateTodoHandler);
+  fastify.patch("/todos/:id", { preHandler: [fastify.authenticate] }, updateTodoHandler);
 
   // Ein Todo löschen
-  fastify.delete("/todos", { preHandler: [fastify.authenticate] }, deleteTodoHandler);
+  fastify.delete("/todos/:id", { preHandler: [fastify.authenticate] }, deleteTodoHandler);
 }

@@ -13,8 +13,9 @@ import { categoryRoutes } from "./routes/categoryRoutes";
 const app = Fastify();
 
 app.register(cors, {
-  origin: true, // <-- erlaubt alle Origins
-  credentials: true, // falls du Cookies/Credentials brauchst
+  origin: true, // erlaubt alle Origins
+  credentials: true, // falls Cookies/Credentials benötigt werden
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // explizit alle Methoden erlauben
 });
 
 app.register(rateLimit);
