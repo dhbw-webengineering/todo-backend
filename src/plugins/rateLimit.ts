@@ -9,7 +9,7 @@ export default fp(async (fastify) => {
       const user = (req as any).user;
       return user?.id ? `user-${user.id}` : req.ip;
     },
-    allowList: (req) => {
+    allowList: () => {
       return false;
     },
     skipOnError: true, 

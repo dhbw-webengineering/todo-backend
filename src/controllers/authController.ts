@@ -53,14 +53,16 @@ export async function loginHandler(req: FastifyRequest, reply: FastifyReply) {
   reply.send({ message: "Login successful", token: token, user: { id: user.id, email: user.email } });
 }
 
-export async function logoutHandler(req: FastifyRequest, reply: FastifyReply) {
+export async function logoutHandler(req: FastifyRequest,reply: FastifyReply) {
+  console.log("Logout request received");
+  console.log("Request user:", req.user);
+  
   reply.clearCookie('authToken', {
     path: '/',
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 0, // Cookie sofort löschen
-  
   });
 
   reply.send({ message: 'Logout successful' });

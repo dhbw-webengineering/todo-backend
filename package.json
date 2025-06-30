@@ -5,6 +5,7 @@
     "nodemon": "^3.1.10",
     "prisma": "^6.10.1",
     "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.16",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   },
@@ -12,7 +13,7 @@
   "version": "1.0.0",
   "main": "src/app.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && tsc-alias",
     "dev": "tsx watch src/app.ts",
     "start": "node app.js"
   },
@@ -32,6 +33,7 @@
     "argon2": "^0.43.0",
     "dotenv": "^16.5.0",
     "fastify": "^5.4.0",
+    "fastify-plugin": "^5.0.1",
     "nodemailer": "^7.0.3"
   }
 }

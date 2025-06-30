@@ -145,7 +145,7 @@ export async function updateTodoHandler(req: FastifyRequest, reply: FastifyReply
   if (completedAt !== undefined) data.completedAt = completedAt; 
 
   try {
-    const updated = await prisma.todo.update({
+    await prisma.todo.update({
       where: { id: todoId },
       data,
       include: { category: true }
