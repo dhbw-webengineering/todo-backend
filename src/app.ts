@@ -8,7 +8,7 @@ import { todoRoutes } from "./routes/todosRoutes";
 import jwtPlugin from "./plugins/jwt";
 import rateLimit from "./plugins/rateLimit";
 import userRoutes from "./routes/userRoutes";
-import { categoryRoutes } from "./routes/categoryRoutes";
+import { categoryRoutes } from "./routes/categoryTagsRoutes";
 
 const app = Fastify();
 
