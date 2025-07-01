@@ -207,6 +207,7 @@ export async function deleteTodoHandler(req: FastifyRequest, reply: FastifyReply
   }
 
   try {
+    await prisma.todoTag.deleteMany({where: { todoId: todoId } });
     await prisma.todo.delete({ where: { id: todoId } });
     reply.code(204).send();
   } catch (error) {
