@@ -17,6 +17,70 @@ export async function getCategoryHandler(req: FastifyRequest, reply: FastifyRepl
   }
 }
 
+export async function createCategoryHandler(req: FastifyRequest<{ Body: { name: string } }>, reply: FastifyReply) {
+  const user = req.user as { id: number };
+  const { name } = req.body;
+
+  try {
+    const newCategory = await prisma.category.create({
+      data: {
+        name,
+        userId: user.id
+      }
+    });
+    reply.status(201).send(newCategory);
+  } catch (error) {
+    reply.status(500).send({ error: "Failed to create category" });
+  }
+}
+
+export async function updateCategoryHandler(req: FastifyRequest<{ Params: { id: string }, Body: { name: string } }>, reply: FastifyReply) {
+  const user = req.user as { id: number };
+  const { id } = req.params;
+  const { name } = req.body;
+
+  try {
+    const category = await prisma.category.findUnique({
+      where: { id: Number(id) }
+    });
+
+    if (!category || category.userId !== user.id) {
+      return reply.status(404).send({ error: "Category not found" });
+    }
+
+    const updatedCategory = await prisma.category.update({
+      where: { id: Number(id) },
+      data: { name }
+    });
+    reply.send(updatedCategory);
+  } catch (error) {
+    reply.status(500).send({ error: "Failed to update category" });
+  }
+}
+
+export async function deleteCategoryHandler(req: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+  const user = req.user as { id: number };
+  const { id } = req.params;
+
+  try {
+    const category = await prisma.category.findUnique({
+      where: { id: Number(id) }
+    });
+
+    if (!category || category.userId !== user.id) {
+      return reply.status(404).send({ error: "Category not found" });
+    }
+
+    await prisma.category.delete({
+      where: { id: Number(id) }
+    });
+
+    reply.status(204).send();
+  } catch (error) {
+    reply.status(500).send({ error: "Failed to delete category" });
+  }
+}
+
 export async function getTagsHandler(req: FastifyRequest, reply: FastifyReply) {
   const user = req.user as { id: number };
 
