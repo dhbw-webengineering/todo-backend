@@ -8,7 +8,7 @@ export async function registerHandler(req: FastifyRequest, reply: FastifyReply) 
   const { email, password } = req.body as { email: string; password: string };
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 6) {
-    return reply.code(400).send({ error: "Invalid input.", message : "Bitte gib eine gültige E-Mail-Adresse und ein Passwort mit mindestens 6 Zeichen ein." });
+    return reply.code(400).send({ error: "Invalid input.", message: "Bitte gib eine gültige E-Mail-Adresse und ein Passwort mit mindestens 6 Zeichen ein." });
   }
 
   try {
@@ -36,7 +36,7 @@ export async function loginHandler(req: FastifyRequest, reply: FastifyReply) {
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user || !(await argon2.verify(user.password, password))) {
-    return reply.code(401).send({ error: "Invalid credentials", message: "Login fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten."});
+    return reply.code(401).send({ error: "Invalid credentials", message: "Login fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten." });
   }
 
   const token = await reply.jwtSign({ id: user.id, email: user.email });
@@ -53,10 +53,10 @@ export async function loginHandler(req: FastifyRequest, reply: FastifyReply) {
   reply.send({ message: "Login successful", token: token, user: { id: user.id, email: user.email } });
 }
 
-export async function logoutHandler(req: FastifyRequest,reply: FastifyReply) {
+export async function logoutHandler(req: FastifyRequest, reply: FastifyReply) {
   console.log("Logout request received");
   console.log("Request user:", req.user);
-  
+
   reply.clearCookie('authToken', {
     path: '/',
     httpOnly: true,
@@ -66,4 +66,23 @@ export async function logoutHandler(req: FastifyRequest,reply: FastifyReply) {
   });
 
   reply.send({ message: 'Logout successful' });
+}
+
+export async function meHandler(req: FastifyRequest, reply: FastifyReply) {
+  const userId = (req.user as { id: number }).id;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true },
+    });
+
+    if (!user) {
+      return reply.code(404).send({ error: "User not found." });
+    }
+
+    reply.send(user);
+  } catch (err) {
+    reply.code(500).send({ error: "Failed to retrieve user." });
+  }
 }

@@ -6,7 +6,7 @@ export default fp(async function (fastify) {
     fastify.register(jwt, {
         secret: "your-super-secret-key",
         cookie: {
-            cookieName: "authToken", // <-- Name deines Cookies
+            cookieName: "authToken",
             signed: false
         }
     });
