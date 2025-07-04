@@ -2,25 +2,79 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import prisma from "../prisma/client";
 
 
-// GET TODOS
-export async function getTodoHandler(req: FastifyRequest, reply: FastifyReply) {
-  console.log(req)
+
+type TodoQuery = {
+  from?: string;
+  to?: string;
+  tag?: string[] | string;       // /todos?tag=1&tag=2 oder /todos?tag=1
+  category?: string[] | string;  // /todos?category=10&category=20 oder /todos?category=10
+};
+
+function toArray(param?: string[] | string): string[] {
+  if (param === undefined) return [];
+  if (Array.isArray(param)) return param;
+  return [param];
+}
+
+export async function getTodoHandler(
+  req: FastifyRequest<{ Querystring: TodoQuery }>,
+  reply: FastifyReply
+) {
   const user = req.user as { id: number };
-  console.log("Fetching todos for user:", user.id);
+  const { from, to, tag, category } = req.query;
+
+  // Robust: Einzelwert oder Array abfangen und in Array umwandeln
+  const tagIds = toArray(tag)
+    .map(id => Number(id))
+    .filter(id => Number.isInteger(id));
+  const categoryIds = toArray(category)
+    .map(id => Number(id))
+    .filter(id => Number.isInteger(id));
+
+  const filters: Record<string, unknown> = {
+    userId: user.id,
+  };
+
+  if (categoryIds.length > 0) {
+    filters.categoryId = { in: categoryIds };
+  }
+
+  if (tagIds.length > 0) {
+    filters.tags = {
+      some: {
+        tagId: { in: tagIds }
+      }
+    };
+  }
+
+  function addOneDay(dateString: string): Date {
+  const date = new Date(dateString);
+  date.setDate(date.getDate() + 1);
+  return date;
+}
+
+  if (from && to) {
+    filters.dueDate = {
+      gte: new Date(from),
+      lt: addOneDay(to),
+    };
+  } else if (from) {
+    filters.dueDate = { gte: new Date(from) };
+  } else if (to) {
+    filters.dueDate = { lt : addOneDay(to) };
+  }
+  
   try {
     const todos = await prisma.todo.findMany({
-      where: { userId:  user.id },
+      where: filters,
       include: {
         category: true,
         tags: {
-          include: {
-            tag: true
-          }
+          include: { tag: true }
         }
       }
     });
 
-    // Tags extrahieren
     const formattedTodos = todos.map(todo => ({
       ...todo,
       tags: todo.tags.map(t => t.tag)
@@ -28,6 +82,7 @@ export async function getTodoHandler(req: FastifyRequest, reply: FastifyReply) {
 
     reply.send(formattedTodos);
   } catch (error) {
+    console.error("Error fetching todos:", error);
     reply.status(500).send({ error: "Failed to fetch todos" });
   }
 }
