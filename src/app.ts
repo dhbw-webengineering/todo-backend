@@ -18,7 +18,8 @@ app.register(cors, {
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // explizit alle Methoden erlauben
 });
 
-app.register(rateLimit);
+//TODO: ratelimit?
+// app.register(rateLimit);
 
 app.register(fastifyCookie, {
   secret: process.env.COOKIE_SECRET, // Für signed cookies

@@ -55,13 +55,13 @@ export async function getTodoHandler(
 
   if (from && to) {
     filters.dueDate = {
-      gte: new Date(from),
-      lt: addOneDay(to),
+      gte: new Date(new Date(from).setHours(0, 0, 0, 0)),
+      lt: new Date(addOneDay(to).setHours(0, 0, 0, 0)),
     };
   } else if (from) {
-    filters.dueDate = { gte: new Date(from) };
+    filters.dueDate = { gte: new Date(new Date(from).setHours(0, 0, 0, 0)) };
   } else if (to) {
-    filters.dueDate = { lt : addOneDay(to) };
+    filters.dueDate = { lt : new Date(addOneDay(to).setHours(0, 0, 0, 0)) };
   }
   
   try {
