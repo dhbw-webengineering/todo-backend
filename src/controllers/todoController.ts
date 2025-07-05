@@ -10,6 +10,11 @@ type TodoQuery = {
   category?: string[] | string;  // /todos?category=10&category=20 oder /todos?category=10
 };
 
+type SearchQuery = {
+  title: string;
+  ignorecase?: boolean;
+};
+
 function toArray(param?: string[] | string): string[] {
   if (param === undefined) return [];
   if (Array.isArray(param)) return param;
@@ -267,5 +272,45 @@ export async function deleteTodoHandler(req: FastifyRequest, reply: FastifyReply
     reply.code(204).send();
   } catch (error) {
     reply.code(500).send({ error: "Failed to delete todo" });
+  }
+}
+
+// SEARCH TODOS
+export async function todoSearchHandler(
+  req: FastifyRequest<{ Querystring: SearchQuery }>,
+  reply: FastifyReply
+) {
+  const user = req.user as { id: number };
+  const {
+    title,
+    ignorecase = true
+  } = req.query;
+
+  try {
+    const todos = await prisma.todo.findMany({
+      where: {
+        userId: user.id,
+        title: {
+          contains: title,
+          mode: ignorecase == false ? "default" : "insensitive"
+        }
+      },
+      include: {
+        category: true,
+        tags: {
+          include: { tag: true }
+        }
+      }
+    });
+
+    const formattedTodos = todos.map(todo => ({
+      ...todo,
+      tags: todo.tags.map(t => t.tag)
+    }));
+
+    reply.send(formattedTodos);
+  } catch (error) {
+    console.log(error)
+    reply.code(500).send({ error: "Search failed" });
   }
 }
