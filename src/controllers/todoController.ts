@@ -13,6 +13,7 @@ type TodoQuery = {
 type SearchQuery = {
   title: string;
   ignorecase?: boolean;
+  notDone?: boolean;
 };
 
 function toArray(param?: string[] | string): string[] {
@@ -283,18 +284,25 @@ export async function todoSearchHandler(
   const user = req.user as { id: number };
   const {
     title,
-    ignorecase = true
+    ignorecase = true,
+    notDone = false
   } = req.query;
+
+  const filters: Record<string, unknown> = {
+    userId: user.id,
+    title: {
+      contains: title,
+      mode: ignorecase == false ? "default" : "insensitive"
+    }
+  };
+
+  if (notDone == true) {
+    filters.completedAt = null;
+  }
 
   try {
     const todos = await prisma.todo.findMany({
-      where: {
-        userId: user.id,
-        title: {
-          contains: title,
-          mode: ignorecase == false ? "default" : "insensitive"
-        }
-      },
+      where: filters,
       include: {
         category: true,
         tags: {
