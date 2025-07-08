@@ -59,7 +59,7 @@ export async function loginHandler(req: FastifyRequest, reply: FastifyReply) {
         secure: e.NODE_ENV === "production",
         sameSite: "lax",
         maxAge: 86400, // 24 Stunden (in Sekunden)
-        signed: false,
+        signed: true,
     });
 
     reply.send({ 

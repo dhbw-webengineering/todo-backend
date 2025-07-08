@@ -8,7 +8,7 @@ export default fp(async function (fastify) {
         secret: e.JWT_SECRET,
         cookie: {
             cookieName: "authToken",
-            signed: false
+            signed: true
         }
     });
 
