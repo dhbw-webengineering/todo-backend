@@ -1,13 +1,14 @@
 import fp from "fastify-plugin";
 import jwt from "@fastify/jwt";
 import { FastifyRequest, FastifyReply } from "fastify";
+import { e } from "../config/env";
 
 export default fp(async function (fastify) {
     fastify.register(jwt, {
-        secret: "your-super-secret-key",
+        secret: e.JWT_SECRET,
         cookie: {
-            cookieName: "authToken", // <-- Name deines Cookies
-            signed: false
+            cookieName: "authToken",
+            signed: true
         }
     });
 
@@ -17,7 +18,9 @@ export default fp(async function (fastify) {
     ) {
         try {
             await request.jwtVerify();
-        } catch {
+            console.log("JWT verification successful, user:", request.user);
+        } catch (err) {
+            console.error("JWT Verify Error:", err);
             reply.code(401).send({ error: "Unauthorized" });
         }
     });
