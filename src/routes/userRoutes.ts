@@ -6,7 +6,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
     preHandler: [fastify.authenticate],
     handler: updateUserHandler,
   });
-  fastify.get("/user", {
+  fastify.get("/me", {
     preHandler: [fastify.authenticate],
     handler: getUserHandler,
   });
