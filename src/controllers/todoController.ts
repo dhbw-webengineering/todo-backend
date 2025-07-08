@@ -10,6 +10,12 @@ type TodoQuery = {
   category?: string[] | string;  // /todos?category=10&category=20 oder /todos?category=10
 };
 
+type SearchQuery = {
+  title: string;
+  ignorecase?: boolean;
+  notDone?: boolean;
+};
+
 function toArray(param?: string[] | string): string[] {
   if (param === undefined) return [];
   if (Array.isArray(param)) return param;
@@ -55,13 +61,13 @@ export async function getTodoHandler(
 
   if (from && to) {
     filters.dueDate = {
-      gte: new Date(from),
-      lt: addOneDay(to),
+      gte: new Date(new Date(from).setHours(0, 0, 0, 0)),
+      lt: new Date(addOneDay(to).setHours(0, 0, 0, 0)),
     };
   } else if (from) {
-    filters.dueDate = { gte: new Date(from) };
+    filters.dueDate = { gte: new Date(new Date(from).setHours(0, 0, 0, 0)) };
   } else if (to) {
-    filters.dueDate = { lt : addOneDay(to) };
+    filters.dueDate = { lt : new Date(addOneDay(to).setHours(0, 0, 0, 0)) };
   }
   
   try {
@@ -267,5 +273,52 @@ export async function deleteTodoHandler(req: FastifyRequest, reply: FastifyReply
     reply.code(204).send();
   } catch (error) {
     reply.code(500).send({ error: "Failed to delete todo" });
+  }
+}
+
+// SEARCH TODOS
+export async function todoSearchHandler(
+  req: FastifyRequest<{ Querystring: SearchQuery }>,
+  reply: FastifyReply
+) {
+  const user = req.user as { id: number };
+  const {
+    title,
+    ignorecase = true,
+    notDone = false
+  } = req.query;
+
+  const filters: Record<string, unknown> = {
+    userId: user.id,
+    title: {
+      contains: title,
+      mode: ignorecase == false ? "default" : "insensitive"
+    }
+  };
+
+  if (notDone == true) {
+    filters.completedAt = null;
+  }
+
+  try {
+    const todos = await prisma.todo.findMany({
+      where: filters,
+      include: {
+        category: true,
+        tags: {
+          include: { tag: true }
+        }
+      }
+    });
+
+    const formattedTodos = todos.map(todo => ({
+      ...todo,
+      tags: todo.tags.map(t => t.tag)
+    }));
+
+    reply.send(formattedTodos);
+  } catch (error) {
+    console.log(error)
+    reply.code(500).send({ error: "Search failed" });
   }
 }
