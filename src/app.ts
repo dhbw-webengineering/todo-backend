@@ -10,7 +10,7 @@ import jwtPlugin from "./plugins/jwt";
 import userRoutes from "./routes/userRoutes";
 import { categoryRoutes } from "./routes/categoryTagsRoutes";
 import { e } from "./config/env";
-// Ensure the environment variables are loaded
+
 const app = Fastify();
 
 app.register(cors, {
@@ -32,7 +32,7 @@ app.register(todoRoutes);
 app.register(userRoutes);
 app.register(categoryRoutes);
 
-app.listen({ port: 3001 }, (err, address) => {
+app.listen({ port: e.PORT }, (err, address) => {
   if (err) throw err;
   console.log(`Server listening at ${address}`);
 });

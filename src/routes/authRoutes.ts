@@ -5,5 +5,5 @@ export async function authRoutes(fastify: FastifyInstance) {
   fastify.post("/register", registerHandler);
   fastify.post("/login", loginHandler);
   fastify.post("/logout", logoutHandler);
-  fastify.get("/me", meHandler)
+  fastify.get("/me", { preHandler: [fastify.authenticate] }, meHandler)
 }
