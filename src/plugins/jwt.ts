@@ -6,6 +6,7 @@ import { e } from "../config/env";
 export default fp(async function (fastify) {
     fastify.register(jwt, {
         secret: e.JWT_SECRET,
+
         cookie: {
             cookieName: "authToken",
             signed: true

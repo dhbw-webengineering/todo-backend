@@ -99,6 +99,7 @@ export async function logoutHandler(req: FastifyRequest, reply: FastifyReply) {
         secure: e.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 0, // Cookie sofort löschen
+
     });
 
     reply.send({ message: 'Logout successful' });
