@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import { env } from 'node:process';
+import 'dotenv/config';
 
 const envSchema = z.object({
     JWT_SECRET: z.string().min(32),
@@ -12,7 +14,7 @@ const envSchema = z.object({
     SMTP_PORT: z.coerce.number(),
     SMTP_USER: z.string(),
     SMTP_PASS: z.string(),
-    SMTP_FROM: z.string().email().default('Todo-Webapp'),
+    SMTP_FROM: z.string().default('Todo-Webapp'),
 })
 
-export const env = envSchema.parse(process.env)
+export const e = envSchema.parse(env)

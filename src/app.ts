@@ -9,12 +9,12 @@ import jwtPlugin from "./plugins/jwt";
 // import rateLimit from "./plugins/rateLimit";
 import userRoutes from "./routes/userRoutes";
 import { categoryRoutes } from "./routes/categoryTagsRoutes";
-import { env } from "./config/env";
-
+import { e } from "./config/env";
+// Ensure the environment variables are loaded
 const app = Fastify();
 
 app.register(cors, {
-  origin: env.FRONTEND_URL || "http://localhost:3000", 
+  origin: e.NODE_ENV == "development" ? true : (e.FRONTEND_URL || "http://localhost:3000"), 
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'DELETE'], 
 });
@@ -22,7 +22,7 @@ app.register(cors, {
 // app.register(rateLimit);
 
 app.register(fastifyCookie, {
-  secret: env.COOKIE_SECRET,
+  secret: e.COOKIE_SECRET,
 });
 
 app.register(jwtPlugin);

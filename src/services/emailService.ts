@@ -1,7 +1,5 @@
 import nodemailer from "nodemailer";
-import dotenv from "dotenv";
-import { env } from "../config/env";
-dotenv.config();
+import { e } from "../config/env";
 
 interface EmailOptions {
   to: string;
@@ -14,12 +12,12 @@ class EmailService {
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      host: env.SMTP_HOST,
-      port: Number(env.SMTP_PORT) || 587,
+      host: e.SMTP_HOST,
+      port: Number(e.SMTP_PORT) || 587,
       secure: true,
       auth: {
-        user: env.SMTP_USER,
-        pass: env.SMTP_PASS,
+        user: e.SMTP_USER,
+        pass: e.SMTP_PASS,
       },
     });
   }
@@ -71,7 +69,7 @@ class EmailService {
     const html = this.buildHtmlTemplate(options.body);
 
     const mailOptions = {
-      from: env.SMTP_FROM || '"Todo-Webapp" <todo@example.com>',
+      from: e.SMTP_FROM || '"Todo-Webapp" <todo@example.com>',
       to: options.to,
       subject: options.subject,
       html,
