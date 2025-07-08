@@ -8,15 +8,16 @@ export async function registerHandler(req: FastifyRequest, reply: FastifyReply) 
     const { email, password } = req.body as { email: string; password: string };
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 6) {
+
         return reply.code(400).send({
             error: "Invalid input.",
             message: "Bitte gib eine gültige E-Mail-Adresse und ein Passwort mit mindestens 6 Zeichen ein."
+
         });
     }
 
     try {
         const hashed = await argon2.hash(password);
-
         const user = await prisma.user.create({
             data: {
                 email,
@@ -99,7 +100,6 @@ export async function logoutHandler(req: FastifyRequest, reply: FastifyReply) {
         secure: e.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 0, // Cookie sofort löschen
-
     });
 
     reply.send({ message: 'Logout successful' });

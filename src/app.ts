@@ -21,6 +21,7 @@ app.register(cors, {
 
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT'],
+
 });
 
 // app.register(rateLimit);

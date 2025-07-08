@@ -1,7 +1,5 @@
 import 'dotenv/config';
 import { z } from 'zod'
-import { env } from 'node:process';
-import 'dotenv/config';
 
 const envSchema = z.object({
     JWT_SECRET: z.string().min(32),
