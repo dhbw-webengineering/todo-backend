@@ -3,6 +3,7 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import argon2 from "argon2";
 import prisma from "../prisma/client";
 import emailService from "../services/emailService";
+import { env } from "../config/env";
 
 export async function registerHandler(req: FastifyRequest, reply: FastifyReply) {
   const { email, password } = req.body as { email: string; password: string };
@@ -44,7 +45,7 @@ export async function loginHandler(req: FastifyRequest, reply: FastifyReply) {
   reply.setCookie("authToken", token, {
     path: "/",
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: 86400,            // 24 Stunden (in Sekunden)
     signed: false,
@@ -60,7 +61,7 @@ export async function logoutHandler(req: FastifyRequest, reply: FastifyReply) {
   reply.clearCookie('authToken', {
     path: '/',
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 0, // Cookie sofort löschen
   });

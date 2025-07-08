@@ -1,10 +1,11 @@
 import fp from "fastify-plugin";
 import jwt from "@fastify/jwt";
 import { FastifyRequest, FastifyReply } from "fastify";
+import { env } from "../config/env";
 
 export default fp(async function (fastify) {
     fastify.register(jwt, {
-        secret: "your-super-secret-key",
+        secret: env.JWT_SECRET || 'fallback-secret-for-dev',
         cookie: {
             cookieName: "authToken",
             signed: false

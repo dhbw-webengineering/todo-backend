@@ -6,23 +6,25 @@ import { authRoutes } from "./routes/authRoutes";
 import { passwordResetRoutes } from "./routes/passwordResetRoutes";
 import { todoRoutes } from "./routes/todosRoutes";
 import jwtPlugin from "./plugins/jwt";
-import rateLimit from "./plugins/rateLimit";
+// import rateLimit from "./plugins/rateLimit";
 import userRoutes from "./routes/userRoutes";
 import { categoryRoutes } from "./routes/categoryTagsRoutes";
+import { env } from "./config/env";
 
 const app = Fastify();
 
 app.register(cors, {
-  origin: true, // erlaubt alle Origins
-  credentials: true, // falls Cookies/Credentials benötigt werden
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // explizit alle Methoden erlauben
+  origin: env.FRONTEND_URL || "http://localhost:3000", 
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'], 
 });
 
 // app.register(rateLimit);
 
 app.register(fastifyCookie, {
-  secret: process.env.COOKIE_SECRET,
+  secret: env.COOKIE_SECRET,
 });
+
 app.register(jwtPlugin);
 app.register(authRoutes);
 app.register(passwordResetRoutes);
