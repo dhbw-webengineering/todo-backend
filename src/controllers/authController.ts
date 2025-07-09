@@ -8,24 +8,45 @@ export async function registerHandler(req: FastifyRequest, reply: FastifyReply) 
     const { email, password } = req.body as { email: string; password: string };
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 6) {
-        return reply.code(400).send({ 
-            error: "Invalid input.", 
-            message: "Bitte gib eine gültige E-Mail-Adresse und ein Passwort mit mindestens 6 Zeichen ein." 
+
+        return reply.code(400).send({
+            error: "Invalid input.",
+            message: "Bitte gib eine gültige E-Mail-Adresse und ein Passwort mit mindestens 6 Zeichen ein."
+
         });
     }
 
     try {
         const hashed = await argon2.hash(password);
-        const user = await prisma.user.create({ data: { email, password: hashed } });
+        const user = await prisma.user.create({
+            data: {
+                email,
+                password: hashed,
+                categories: {
+                    create: {
+                        name: "Allgemein"
+                    }
+                }
+            },
+            include: {
+                categories: true
+            }
+        });
+
         sendWelcomeMail({ to: user.email });
-        reply.code(201).send({ id: user.id, email: user.email });
+
+        reply.code(201).send({
+            id: user.id,
+            email: user.email,
+        });
     } catch {
-        reply.code(400).send({ 
-            error: "User already exists or invalid data.", 
-            message: "Diese Email ist bereits registriert" 
+        reply.code(400).send({
+            error: "User already exists or invalid data.",
+            message: "Diese Email ist bereits registriert"
         });
     }
 }
+
 
 async function sendWelcomeMail({ to }: { to: string }) {
     const subject = "Registrierung erfolgreich";
@@ -42,9 +63,9 @@ export async function loginHandler(req: FastifyRequest, reply: FastifyReply) {
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user || !(await argon2.verify(user.password, password))) {
-        return reply.code(401).send({ 
-            error: "Invalid credentials", 
-            message: "Login fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten." 
+        return reply.code(401).send({
+            error: "Invalid credentials",
+            message: "Login fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten."
         });
     }
 
@@ -62,10 +83,10 @@ export async function loginHandler(req: FastifyRequest, reply: FastifyReply) {
         signed: true,
     });
 
-    reply.send({ 
-        message: "Login successful", 
-        token: token, 
-        user: { id: user.id, email: user.email } 
+    reply.send({
+        message: "Login successful",
+        token: token,
+        user: { id: user.id, email: user.email }
     });
 }
 

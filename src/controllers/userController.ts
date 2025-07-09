@@ -1,34 +1,36 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import prisma from "../prisma/client";
 import argon2 from "argon2";
+import { Prisma } from "@prisma/client";
 
 interface UpdateUserBody {
   email?: string;
   password?: string;
 }
 
+
 export async function updateUserHandler(req: FastifyRequest, reply: FastifyReply) {
-  const userId = (req.user as { id: number }).id;
-  const { email, password } = req.body as UpdateUserBody;
+  const userId = (req.user as { id: number }).id
+  const { email, password } = req.body as UpdateUserBody
 
   if (!email && !password) {
-    return reply.code(400).send({ error: "Nothing to update." });
+    return reply.code(400).send({ error: "Nothing to update." })
   }
 
-  const updateData: { email?: string; password?: string } = {};
+  const updateData: { email?: string; password?: string } = {}
 
   if (email) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return reply.code(400).send({ error: "Invalid email." });
+      return reply.code(400).send({ error: "Invalid email." })
     }
-    updateData.email = email;
+    updateData.email = email
   }
 
   if (password) {
     if (password.length < 6) {
-      return reply.code(400).send({ error: "Password too short." });
+      return reply.code(400).send({ error: "Password too short." })
     }
-    updateData.password = await argon2.hash(password);
+    updateData.password = await argon2.hash(password)
   }
 
   try {
@@ -36,10 +38,16 @@ export async function updateUserHandler(req: FastifyRequest, reply: FastifyReply
       where: { id: userId },
       data: updateData,
       select: { id: true, email: true },
-    });
-    reply.send({ message: "User updated", user: updatedUser });
+    })
+    reply.send({ message: "User updated", user: updatedUser })
   } catch (err) {
-    reply.code(500).send({ error: "Failed to update user." });
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002" && (err.meta?.target as string[]).includes("email")
+    ) {
+      return reply.code(400).send({ error: "E-Mail-Adresse wird bereits verwendet." })
+    }
+
+    console.error("Update failed:", err)
+    reply.code(500).send({ error: "Failed to update user." })
   }
 }
 
