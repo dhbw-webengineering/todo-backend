@@ -3,13 +3,14 @@ import { generateResetToken, validateResetToken, consumeResetToken } from "../se
 import prisma from "../prisma/client";
 import argon2 from "argon2";
 import emailService from "../services/emailService";
+import { e } from "../config/env";
 
 export async function requestPasswordResetHandler(req: FastifyRequest, reply: FastifyReply) {
   const { email } = req.body as { email: string };
   const user = await prisma.user.findUnique({ where: { email } });
   if (user) {
     const token = await generateResetToken(user.id);
-    const link = `http://localhost:3000/auth/reset-password?token=${token}`;
+    const link = `${e.FRONTEND_URL}/auth/reset-password?token=${token}`;
     await sendPasswordResetEmail(email, link);
   }
   reply.send({ message: "Wenn die E-Mail existiert, wurde ein Reset-Link versendet." });
