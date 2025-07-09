@@ -10,7 +10,7 @@
     "build": "tsc -p tsconfig.json && tsc-alias",
     "dev": "tsx watch src/app.ts",
     "start": "node app.js",
-    "test": "vitest",
+    "test": "vitest --environment node",
     "test:watch": "vitest --watch"
   },
   "prisma": {

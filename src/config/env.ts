@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import 'dotenv/config'
+
 
 const envSchema = z.object({
     JWT_SECRET: z.string().min(32),
