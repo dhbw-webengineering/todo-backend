@@ -17,8 +17,8 @@ const app = Fastify({
 
 
 app.register(cors, {
-  origin: e.NODE_ENV == "development" ? true : (e.FRONTEND_URL || "http://localhost:3000"),
-
+  origin: e.NODE_ENV == "development" ? true : "http://localhost:3000",
+  // origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT'],
 });
@@ -36,7 +36,7 @@ app.register(todoRoutes);
 app.register(userRoutes);
 app.register(categoryRoutes);
 
-app.listen({ port: e.PORT }, (err, address) => {
+app.listen({ port: e.PORT, host: '0.0.0.0' }, (err, address) => {
   if (err) throw err;
   console.log(`Server listening at ${address}`);
 });

@@ -10,8 +10,8 @@ RUN pnpm install --frozen-lockfile
 # 3. Quellcode kopieren, env und Prisma vorbereiten
 COPY ./src ./src
 COPY tsconfig.json ./
-COPY .env.template ./
-RUN cp .env.template .env
+# COPY .env.template ./
+# RUN cp .env.template .env
 RUN pnpm prisma generate
 
 # 4. Build
@@ -23,7 +23,7 @@ WORKDIR /app
 COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/dist ./dist
 COPY --from=base /app/package.json ./
-COPY --from=base /app/.env ./
+# COPY --from=base /app/.env ./
 
 EXPOSE 3001
 CMD ["node", "dist/app.js"]
