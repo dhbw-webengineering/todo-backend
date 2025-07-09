@@ -1,23 +1,26 @@
 {
   "compilerOptions": {
-    "target": "ES2022",                        // Modernes JS-Target für Node 20+
-    "module": "NodeNext",                        // ESM-Modulformat
-    "moduleResolution": "NodeNext",            // ESM- und .js-Endungs-Kompatibilität
-    "outDir": "./dist",                        // Build-Output
-    "rootDir": "./src",                        // Quellverzeichnis
-    "esModuleInterop": true,                   // Für Import-Kompatibilität (z.B. require/import)
-    "forceConsistentCasingInFileNames": true,  // Verhindert Case-Probleme
-    "strict": true,                            // Strikter Typmodus
-    "skipLibCheck": true,                      // Schnellere Builds, weniger Typen-Fehler aus node_modules
-    "resolveJsonModule": true,                 // Ermöglicht Import von .json-Dateien
-    "allowSyntheticDefaultImports": true,      // Ermöglicht Default-Imports für CommonJS-Module
-    "sourceMap": true,                         // Für Debugging/Stacktraces
-    "declaration": false,                      // Falls du keine .d.ts-Dateien brauchst
-    "noEmit": false,                           // Emitte JS-Dateien
-    "types": ["node"],                         // Node.js-Typen
-    "allowJs": false,                          // Nur TS-Dateien kompilieren
-    "noUnusedLocals": true,                    // Warnung bei ungenutzten lokalen Variablen
-    "noUnusedParameters": true                 // Warnung bei ungenutzten Parametern
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "declaration": false,
+    "noEmit": false,
+    "types": [
+      "node",
+      "vitest/globals"
+    ],
+    "allowJs": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
   "include": [
     "src/**/*"

@@ -5,7 +5,7 @@ const envSchema = z.object({
     JWT_SECRET: z.string().min(32),
     DATABASE_URL: z.string().url(),
     COOKIE_SECRET: z.string().min(32),
-    NODE_ENV: z.enum(['development', 'production']).default('development'),
+    NODE_ENV: z.enum(['development', 'production','test']).default('development'),
     PORT: z.coerce.number().default(3001),
     FRONTEND_URL: z.string().url().default('http://localhost:3000'),
 
