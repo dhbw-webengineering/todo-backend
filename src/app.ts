@@ -40,3 +40,5 @@ app.listen({ port: e.PORT }, (err, address) => {
   if (err) throw err;
   console.log(`Server listening at ${address}`);
 });
+
+export default app;
