@@ -17,8 +17,7 @@ const app = Fastify({
 
 
 app.register(cors, {
-  origin: e.NODE_ENV == "development" ? true : "http://localhost:3000",
-  // origin: true,
+  origin: e.NODE_ENV == "development" ? true : e.FRONTEND_URL,
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT'],
 });
