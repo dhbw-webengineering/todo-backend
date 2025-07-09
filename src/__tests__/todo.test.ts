@@ -94,7 +94,6 @@ afterEach(async () => {
   await clearTodos(app, authCookie);
 });
 
-// --- TESTS ---
 
 describe("GET /todos", () => {
   it("gibt eine leere Liste zurück, wenn keine Todos existieren", async () => {
@@ -240,7 +239,6 @@ describe("DELETE /todos/:id", () => {
     });
     expect(response.statusCode).toBe(204);
 
-    // Prüfe, ob das Todo wirklich gelöscht wurde
     const getResponse = await app.inject({
       method: "GET",
       url: "/todos",
@@ -260,10 +258,8 @@ describe("DELETE /todos/:id", () => {
   });
 });
 
-// OPTIONAL: Rechte-Prüfung (wenn mehrere User unterstützt werden)
 describe("Berechtigungen", () => {
   it("ein Benutzer kann nicht die Todos eines anderen Benutzers löschen", async () => {
-    // Erstelle ein Todo als User 1
     const todoResponse = await app.inject({
       method: "POST",
       url: "/todos",
@@ -276,10 +272,8 @@ describe("Berechtigungen", () => {
     });
     const todoId = JSON.parse(todoResponse.payload).id;
 
-    // Registriere und logge User 2 ein
     const otherCookie = await registerAndLogin(app, "other@example.com", "otherpassword", "Other User");
 
-    // Versuche, das Todo von User 1 mit User 2 zu löschen
     const deleteResponse = await app.inject({
       method: "DELETE",
       url: `/todos/${todoId}`,
