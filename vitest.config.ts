@@ -2,8 +2,9 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    globals: true,        // Nutzung von describe, it, expect ohne Import
-    environment: 'node',  // Für Node.js-Backends
-    // setupFiles: ['./src/tests/setup.ts'], // Nur falls du später eine Setup-Datei anlegst
+    globals: true,
+    environment: 'node',
+    setupFiles: ['./src/__tests__/setup.ts'], // Setup-Datei aktivieren
+    testTimeout: 10000, // 10 Sekunden Timeout
   },
 });
