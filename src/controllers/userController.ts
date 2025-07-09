@@ -69,22 +69,3 @@ export async function getUserHandler(req: FastifyRequest, reply: FastifyReply) {
     reply.code(500).send({ error: "Failed to retrieve user." });
   }
 }
-
-export async function getUserHandler(req: FastifyRequest, reply: FastifyReply) {
-  const userId = (req.user as { id: number }).id;
-
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, email: true },
-    });
-
-    if (!user) {
-      return reply.code(404).send({ error: "User not found." });
-    }
-
-    reply.send(user);
-  } catch (err) {
-    reply.code(500).send({ error: "Failed to retrieve user." });
-  }
-}
