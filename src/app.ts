@@ -15,7 +15,6 @@ const app = Fastify({
   logger: e.NODE_ENV !== "production",
 });
 
-
 app.register(cors, {
   origin: e.NODE_ENV == "development" ? true : e.FRONTEND_URL,
   credentials: true,
