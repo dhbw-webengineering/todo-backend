@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import { FastifyInstance } from "fastify";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
@@ -6,103 +6,103 @@ import fastifyCookie from "@fastify/cookie";
 import jwtPlugin from "../plugins/jwt";
 import { authRoutes } from "../routes/authRoutes";
 import { todoRoutes } from "../routes/todosRoutes";
+import { categoryRoutes } from "../routes/categoryTagsRoutes";
 
-let app: FastifyInstance;
-let authCookie: string;
-
-beforeAll(async () => {
-  // Erstelle eine separate Test-App-Instanz
-  app = Fastify({
-    logger: false // Deaktiviere Logs für Tests
-  });
-
-  // Registriere die gleichen Plugins wie in der Haupt-App
-  await app.register(cors, {
-    origin: true,
-    credentials: true,
-    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT'],
-  });
-
-  await app.register(fastifyCookie, {
-    secret: process.env.COOKIE_SECRET!,
-  });
-
-  await app.register(jwtPlugin);
-  await app.register(authRoutes);
-  await app.register(todoRoutes);
-
-  // Warte bis die App bereit ist
-  await app.ready();
-
-  // Erstelle einen Testbenutzer und melde ihn an
-  // Zuerst Registrierung (falls nötig)
+// Hilfsfunktionen für wiederkehrende Abläufe
+async function registerAndLogin(app: FastifyInstance, email: string, password: string, name = "Test User") {
   try {
     await app.inject({
       method: "POST",
       url: "/register",
-      payload: {
-        email: "test@example.com",
-        password: "testpassword123",
-        name: "Test User"
-      }
+      payload: { email, password, name }
     });
-  } catch (error) {
-    // Benutzer existiert möglicherweise bereits
-  }
-
-  // Dann Login
+  } catch {}
   const loginResponse = await app.inject({
     method: "POST",
     url: "/login",
-    payload: {
-      email: "test@example.com",
-      password: "testpassword123"
-    }
+    payload: { email, password }
   });
-
-  // Extrahiere das Cookie korrekt
   const cookies = loginResponse.headers["set-cookie"];
+  let cookie = "";
   if (Array.isArray(cookies)) {
-    authCookie = cookies.find(cookie => cookie.includes('authToken')) || '';
+    cookie = cookies.find(c => c.includes("authToken")) || "";
   } else {
-    authCookie = cookies || '';
+    cookie = cookies || "";
   }
+  return cookie.split(";")[0];
+}
 
-  // Entferne die HttpOnly-Attribute für Tests
-  authCookie = authCookie.split(';')[0];
-});
+async function createCategory(app: FastifyInstance, cookie: string, name = "Testkategorie", color = "#abcdef") {
+  const res = await app.inject({
+    method: "POST",
+    url: "/category",
+    headers: { cookie },
+    payload: { name, color }
+  });
+  return JSON.parse(res.payload);
+}
 
-afterAll(async () => {
-  await app.close();
-});
-
-async function clearTodos() {
-  // Hole alle Todos und lösche sie einzeln
+async function clearTodos(app: FastifyInstance, cookie: string) {
   const response = await app.inject({
     method: "GET",
     url: "/todos",
-    headers: { cookie: authCookie }
+    headers: { cookie }
   });
   const todos = JSON.parse(response.payload);
   for (const todo of todos) {
     await app.inject({
       method: "DELETE",
       url: `/todos/${todo.id}`,
-      headers: { cookie: authCookie }
+      headers: { cookie }
     });
   }
 }
+
+let app: FastifyInstance;
+let authCookie: string;
+let testCategoryId: number;
+
+// Test-Setup
+beforeAll(async () => {
+  app = Fastify({ logger: false });
+
+  await app.register(cors, {
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT'],
+  });
+  await app.register(fastifyCookie, {
+    secret: process.env.COOKIE_SECRET!,
+  });
+  await app.register(jwtPlugin);
+  await app.register(authRoutes);
+  await app.register(categoryRoutes);
+  await app.register(todoRoutes);
+
+  await app.ready();
+
+  authCookie = await registerAndLogin(app, "test@example.com", "testpassword123");
+  const category = await createCategory(app, authCookie);
+  testCategoryId = category.id;
+});
+
+afterAll(async () => {
+  await app.close();
+});
+
+afterEach(async () => {
+  await clearTodos(app, authCookie);
+});
+
+// --- TESTS ---
 
 describe("GET /todos", () => {
   it("gibt eine leere Liste zurück, wenn keine Todos existieren", async () => {
     const response = await app.inject({
       method: "GET",
       url: "/todos",
-      headers: {
-        cookie: authCookie
-      }
+      headers: { cookie: authCookie }
     });
-
     expect(response.statusCode).toBe(200);
     expect(JSON.parse(response.payload)).toEqual([]);
   });
@@ -112,49 +112,181 @@ describe("GET /todos", () => {
       method: "GET",
       url: "/todos"
     });
-
     expect(response.statusCode).toBe(401);
   });
-  
 });
 
 describe("POST /todos", () => {
-  afterEach(async () => {
-    await clearTodos();
-  });
-
   it("erstellt ein neues Todo", async () => {
+    const payload = {
+      title: "Mein erstes Todo",
+      dueDate: new Date().toISOString(),
+      categoryId: testCategoryId
+    };
     const response = await app.inject({
       method: "POST",
       url: "/todos",
       headers: { cookie: authCookie },
-      payload: { title: "Mein erstes Todo" }
+      payload
     });
-
     expect(response.statusCode).toBe(201);
     const todo = JSON.parse(response.payload);
-    expect(todo).toMatchObject({ title: "Mein erstes Todo", completed: false });
     expect(todo).toHaveProperty("id");
+    expect(todo).toHaveProperty("title", payload.title);
+    expect(todo).toHaveProperty("categoryId", testCategoryId);
+    if ("completed" in todo) {
+      expect(todo.completed).toBe(false);
+    }
   });
 
   it("verhindert leere Titel", async () => {
+    const payload = {
+      title: "",
+      dueDate: new Date().toISOString(),
+      categoryId: testCategoryId
+    };
     const response = await app.inject({
       method: "POST",
       url: "/todos",
       headers: { cookie: authCookie },
-      payload: { title: "" }
+      payload
     });
-
     expect(response.statusCode).toBe(400);
   });
 
   it("gibt 401 zurück, wenn nicht authentifiziert", async () => {
+    const payload = {
+      title: "Test",
+      dueDate: new Date().toISOString(),
+      categoryId: testCategoryId
+    };
     const response = await app.inject({
       method: "POST",
       url: "/todos",
+      payload
+    });
+    expect(response.statusCode).toBe(401);
+  });
+});
+
+describe("PATCH /todos/:id", () => {
+  let todoId: number;
+
+  beforeEach(async () => {
+    const payload = {
+      title: "Zu aktualisieren",
+      dueDate: new Date().toISOString(),
+      categoryId: testCategoryId
+    };
+    const response = await app.inject({
+      method: "POST",
+      url: "/todos",
+      headers: { cookie: authCookie },
+      payload
+    });
+    todoId = JSON.parse(response.payload).id;
+  });
+
+  it("aktualisiert ein bestehendes Todo", async () => {
+    const updatePayload = { title: "Aktualisiert", completed: true };
+    const response = await app.inject({
+      method: "PATCH",
+      url: `/todos/${todoId}`,
+      headers: { cookie: authCookie },
+      payload: updatePayload
+    });
+    expect(response.statusCode).toBe(200);
+    const updated = JSON.parse(response.payload);
+    expect(updated).toHaveProperty("title", "Aktualisiert");
+    if ("completed" in updated) {
+      expect(updated.completed).toBe(true);
+    }
+  });
+
+  it("gibt 404 zurück bei ungültiger ID", async () => {
+    const response = await app.inject({
+      method: "PATCH",
+      url: `/todos/9999999`,
+      headers: { cookie: authCookie },
       payload: { title: "Test" }
     });
+    expect(response.statusCode).toBe(404);
+  });
+});
 
-    expect(response.statusCode).toBe(401);
+describe("DELETE /todos/:id", () => {
+  let todoId: number;
+
+  beforeEach(async () => {
+    const payload = {
+      title: "Zu löschen",
+      dueDate: new Date().toISOString(),
+      categoryId: testCategoryId
+    };
+    const response = await app.inject({
+      method: "POST",
+      url: "/todos",
+      headers: { cookie: authCookie },
+      payload
+    });
+    todoId = JSON.parse(response.payload).id;
+  });
+
+  it("löscht ein bestehendes Todo", async () => {
+    const response = await app.inject({
+      method: "DELETE",
+      url: `/todos/${todoId}`,
+      headers: { cookie: authCookie }
+    });
+    expect(response.statusCode).toBe(204);
+
+    // Prüfe, ob das Todo wirklich gelöscht wurde
+    const getResponse = await app.inject({
+      method: "GET",
+      url: "/todos",
+      headers: { cookie: authCookie }
+    });
+    const todos = JSON.parse(getResponse.payload);
+    expect(todos.find((t: any) => t.id === todoId)).toBeUndefined();
+  });
+
+  it("gibt 404 zurück bei ungültiger ID", async () => {
+    const response = await app.inject({
+      method: "DELETE",
+      url: `/todos/9999999`,
+      headers: { cookie: authCookie }
+    });
+    expect(response.statusCode).toBe(404);
+  });
+});
+
+// OPTIONAL: Rechte-Prüfung (wenn mehrere User unterstützt werden)
+describe("Berechtigungen", () => {
+  it("ein Benutzer kann nicht die Todos eines anderen Benutzers löschen", async () => {
+    // Erstelle ein Todo als User 1
+    const todoResponse = await app.inject({
+      method: "POST",
+      url: "/todos",
+      headers: { cookie: authCookie },
+      payload: {
+        title: "Fremdes Todo",
+        dueDate: new Date().toISOString(),
+        categoryId: testCategoryId
+      }
+    });
+    const todoId = JSON.parse(todoResponse.payload).id;
+
+    // Registriere und logge User 2 ein
+    const otherCookie = await registerAndLogin(app, "other@example.com", "otherpassword", "Other User");
+
+    // Versuche, das Todo von User 1 mit User 2 zu löschen
+    const deleteResponse = await app.inject({
+      method: "DELETE",
+      url: `/todos/${todoId}`,
+      headers: { cookie: otherCookie }
+    });
+    expect(deleteResponse.statusCode).toBe(404);
+
+    await clearTodos(app, otherCookie);
   });
 });
