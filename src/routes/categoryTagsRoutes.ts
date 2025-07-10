@@ -10,7 +10,7 @@ export async function categoryRoutes(fastify: FastifyInstance) {
 
     fastify.get("/category", { preHandler: [fastify.authenticate] }, getCategoryHandler);
     fastify.post("/category", { preHandler: [fastify.authenticate] }, createCategoryHandler);
-    fastify.put("/category/:id", { preHandler: [fastify.authenticate] }, updateCategoryHandler);
+    fastify.patch("/category/:id", { preHandler: [fastify.authenticate] }, updateCategoryHandler);
     fastify.delete("/category/:id", { preHandler: [fastify.authenticate] }, deleteCategoryHandler);
 
     fastify.get("/tags", { preHandler: [fastify.authenticate] }, getTagsHandler);

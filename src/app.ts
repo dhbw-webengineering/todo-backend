@@ -11,14 +11,12 @@ import userRoutes from "./routes/userRoutes";
 import { categoryRoutes } from "./routes/categoryTagsRoutes";
 import { e } from "./config/env";
 
-const app = Fastify({
-  logger: e.NODE_ENV !== "production",
-});
+const app = Fastify();
 
 app.register(cors, {
   origin: e.NODE_ENV == "development" ? true : e.FRONTEND_URL,
   credentials: true,
-  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT'],
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
 });
 
 // app.register(rateLimit);
